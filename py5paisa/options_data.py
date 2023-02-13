@@ -91,10 +91,6 @@ class FetchOptionData:
       
       if self.client.login_response_message is not None:
         raise InvalidLoginException
-        
-#       elif not self.client.is_logged_in:
-#         raise InvalidLoginCredentialsException
-
       else:
         display(HTML("<h2 style='color: #00D100'>Logged In...!!</h2>"))
 
