@@ -658,8 +658,10 @@ class FivePaisaClient:
                 self.Jwt_token = self.access_token
                 self._set_client_code(res["body"]["ClientCode"])
                 log_response("Logged in!!")
+                self.is_logged_in = True
                 return self.access_token
             else:
+                self.login_response_message = message
                 log_response(message)
         except Exception as e:
             log_response(e)
