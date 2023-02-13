@@ -103,7 +103,7 @@ class FetchOptionData:
       raise InvalidLoginCredentialsException
 
     except InvalidLoginException:
-      display(HTML(f"<h2 style='color: #FF4500'>Error during Sign in : {self.login_response_message}</h2>"))
+      display(HTML(f"<h2 style='color: #FF4500'>Error during Sign in : {self.client.login_response_message}</h2>"))
       raise InvalidLoginException
 
     try:
