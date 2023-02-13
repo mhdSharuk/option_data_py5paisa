@@ -1,0 +1,10 @@
+certifi
+chardet
+idna
+pbkdf2
+pycryptodome
+requests
+urllib3
+loguru
+Crypto
+websocket
