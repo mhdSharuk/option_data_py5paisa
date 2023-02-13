@@ -29,6 +29,7 @@ class FivePaisaClient:
             self.Res_Data= None
             self.ws= None
             self.access_token= ""
+            self.is_logged_in = False
             self.session = requests.Session()
             self.APP_SOURCE=cred["APP_SOURCE"]
             self.APP_NAME=cred["APP_NAME"]
