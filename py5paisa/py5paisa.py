@@ -30,6 +30,7 @@ class FivePaisaClient:
             self.ws= None
             self.access_token= ""
             self.is_logged_in = False
+            self.login_response_message = None
             self.session = requests.Session()
             self.APP_SOURCE=cred["APP_SOURCE"]
             self.APP_NAME=cred["APP_NAME"]
@@ -61,7 +62,6 @@ class FivePaisaClient:
             res = self._login_request(self.LOGIN_ROUTE)
             
             message = res["body"]["Message"]
-            self.login_response_message = None
             if message == "":
               log_response("Logged in!!")
               self.is_logged_in = True
