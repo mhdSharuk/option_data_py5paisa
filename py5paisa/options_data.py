@@ -89,17 +89,16 @@ class FetchOptionData:
       self.client = FivePaisaClient(email = self.email, passwd = self.pwd, dob = self.dob, cred = self.creds)
       self.client.login()
       
-      if self.client.login_response_message is not None:
+      if self.client.login_response_message is not None or not self.client.is_logged_in:
         raise InvalidLoginException
       else:
         display(HTML("<h2 style='color: #00D100'>Logged In...!!</h2>"))
 
-    except InvalidLoginCredentialsException:
-      display(HTML(f"<h2 style='color: #FF4500'>Invalid Login Credentials</h2>"))
-      raise InvalidLoginCredentialsException
-
     except InvalidLoginException:
-      display(HTML(f"<h2 style='color: #FF4500'>Error during Sign in : {self.client.login_response_message}</h2>"))
+      if self.client.login_response_message not is None:
+        display(HTML(f"<h2 style='color: #FF4500'>Error during Sign in : {self.client.login_response_message}</h2>"))
+      else:
+        display(HTML(f"<h2 style='color: #FF4500'>Error during Sign in : Invalid Credentials</h2>"))
       raise InvalidLoginException
 
     try:
