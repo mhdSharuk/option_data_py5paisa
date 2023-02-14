@@ -435,43 +435,77 @@ class FetchOptionData:
     return functions
 
   def convert_df_to_html(self, index, spot_value, fut_value, *dfs):
-    value_diff = round(fut_value - spot_value, 2)
+    value_diff = round(fut_value - spot_value,2)
     html = """
     <style>
         table tr td:nth-child(12){
            background-color: #C5C5C5;
            color: black;
-           text-align: center;
+           text-align:center;
         }
-        td{
-          text-align: center;
-          font-size: 17px
+        
+        .row{
+          font-size:20px; 
+          text-align:center;
         }
+        
+        #discount{
+          text-align : center; 
+          background-color : lightgreen; 
+          color : black; 
+          font-weight : bold; 
+          font-size : 16px
+        }
+
         .set{
           border-bottom: 5px double white;
           padding: 10px;
         }
+
         caption{
           font-size: 18px;
           font-weight: bold;
           padding: 5px;
         }
+
+        #dataframe{
+          margin-top : 30px;
+          width : 100%;
+        }
+
+        .atm{
+          background-color: #C5C5C5; 
+          color: black; 
+          text-align: center;
+        }
+
+        .calls{
+          background-color: #32CD32; 
+          color: black; 
+          text-align: center
+        }
+
+        .puts{
+          background-color: #FF5C5C; 
+          color: black; 
+          text-align: center
+        }
     </style>
     """
-    html += '<div style="display:flex">'
+    html += '<div style="padding-left:30px; padding-right:30px">'
     for df in dfs:
         html += df.T.to_html()
     html += '</div>'
-    html = html.replace('<table border="1" class="dataframe" style=\'display: block; margin-top:50px\'>', '<table border="1" class="dataframe" style=\'display: block; margin-top:50px;width:100%\'>')
-    html = html.replace("<td>", '<td style="font-size:20px">')
-    html = html.replace('<td style="font-size:20px">Discount</td>','<td style="background-color: lightgreen; color: black"></td>')
-    html = html.replace('<th>10</th>','<th style="background-color: #C5C5C5; color: black; text-align: center">ATM</th>')
-    html = html.replace("""<th>0</th>\n      <th>1</th>\n      <th>2</th>\n      <th>3</th>\n      <th>4</th>\n      <th>5</th>\n      <th>6</th>\n      <th>7</th>\n      <th>8</th>\n      <th>9</th>\n      """,'<th colspan=10 style="background-color: #32CD32; color: black; text-align: center">Calls</th>')
-    html = html.replace("""<th>11</th>\n      <th>12</th>\n      <th>13</th>\n      <th>14</th>\n      <th>15</th>\n      <th>16</th>\n      <th>17</th>\n      <th>18</th>\n      <th>19</th>\n      <th>20</th>\n    """,'<th colspan=10 style="background-color: #FF5C5C; color: black; text-align: center">Puts</th>')
+    html = html.replace("""<table border="1" class="dataframe">""", """<table border="1" class="dataframe" id="dataframe">""")
+    html = html.replace("""<td>""", '<td class="row">')
+    html = html.replace("""<td class="row">Discount</td>""",'<td id="discount">Discount</td>')
+    html = html.replace("""<th>10</th>""",'<th class="atm">ATM</th>')
+    html = html.replace("""<th>0</th>\n      <th>1</th>\n      <th>2</th>\n      <th>3</th>\n      <th>4</th>\n      <th>5</th>\n      <th>6</th>\n      <th>7</th>\n      <th>8</th>\n      <th>9</th>\n      """,'<th colspan=10 class="calls">Calls</th>')
+    html = html.replace("""<th>11</th>\n      <th>12</th>\n      <th>13</th>\n      <th>14</th>\n      <th>15</th>\n      <th>16</th>\n      <th>17</th>\n      <th>18</th>\n      <th>19</th>\n      <th>20</th>\n    """,'<th colspan=10 class="puts">Puts</th>')
     html = html.replace(
-        """<table border="1" class="dataframe">""", 
+        """<table border="1" class="dataframe" id="dataframe">""", 
         f"""
-        <table border="1" class="dataframe" style='display: block; margin-top:50px'>
+        <table border="1" class="dataframe" id="dataframe">
             <caption>{index} Spot : {spot_value}</caption>
             <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
         """)
