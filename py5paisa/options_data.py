@@ -185,7 +185,14 @@ class FetchOptionData:
     call_strikes = np.linspace(refined_spot-spot_diff, refined_spot, step)
     put_strikes = np.linspace(refined_spot, refined_spot+spot_diff, step)
 
-    return call_strikes, put_strikes      
+    if self.index == 'BANKNIFTY':
+      call_strikes = np.append(call_strikes, [call_strikes[-1]+100])
+      put_strikes = np.insert(put_strikes, 0, put_strikes[0]-100)
+    else:
+      call_strikes = np.append(call_strikes, [call_strikes[-1]+50])
+      put_strikes = np.insert(put_strikes, 0, put_strikes[0]-50)
+
+    return refined_spot, call_strikes, put_strikes   
 
   def getSpot(self, result, index):
     response = self.client.get_expiry('N', index)
@@ -230,7 +237,7 @@ class FetchOptionData:
       futures_value = futures['Data'][0]['LastTradedPrice']
       option_chain = option_chain['Options']
 
-      call_strikes, put_strikes = self.getStrikes(spot_value)
+      refined_spot, call_strikes, put_strikes = self.getStrikes(spot_value)
       call_strike_ltp_map = {'Strikes':[], 'Call LTP':[]}
       put_strike_ltp_map = {'Strikes':[], 'Put LTP':[]}
 
@@ -244,11 +251,11 @@ class FetchOptionData:
 
       call_df = pd.DataFrame(call_strike_ltp_map)
       call_df['Call IV'] = spot_value - call_df['Strikes']
-      call_df['Call Premium'] = np.where(call_df['Call LTP']<=0, 0, call_df['Call LTP']-call_df['Call IV'])
+      call_df['Call Premium'] = np.where(refined_spot < call_df['Strikes'], np.nan, call_df['Call LTP']-call_df['Call IV'])
 
       put_df = pd.DataFrame(put_strike_ltp_map)
       put_df['Put IV'] = put_df['Strikes'] - spot_value
-      put_df['Put Premium'] = np.where(put_df['Put LTP']<=0, 0, put_df['Put LTP']-put_df['Put IV'])
+      put_df['Put Premium'] = np.where(refined_spot > put_df['Strikes'], np.nan, put_df['Put LTP']-put_df['Put IV'])
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
       df.fillna(' ', inplace=True)
