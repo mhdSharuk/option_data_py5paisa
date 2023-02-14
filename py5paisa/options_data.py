@@ -251,16 +251,19 @@ class FetchOptionData:
 
       call_df = pd.DataFrame(call_strike_ltp_map)
       call_df['Call IV'] = spot_value - call_df['Strikes']
-      call_df['Call Premium'] = np.where(refined_spot < call_df['Strikes'], np.nan, call_df['Call LTP']-call_df['Call IV'])
+      call_df['Call Premium'] = np.where(refined_spot < call_df['Strikes'], np.nan , call_df['Call LTP']-call_df['Call IV'])
+      call_df['Call Premium'] = np.where(call_df['Call LTP'] == 0, 0, call_df['Call Premium'])
 
       put_df = pd.DataFrame(put_strike_ltp_map)
       put_df['Put IV'] = put_df['Strikes'] - spot_value
       put_df['Put Premium'] = np.where(refined_spot > put_df['Strikes'], np.nan, put_df['Put LTP']-put_df['Put IV'])
+      put_df['Put Premium'] = np.where(put_df['Put LTP'] == 0, 0, put_df['Put Premium'])
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
+      df['Is Discounted'] = np.where(((df['Call LTP'] < df['Call IV']) | (df['Put LTP'] < df['Put IV'])) & (df['Call Premium'] != 0) & (df['Put Premium'] != 0), 'Discount', ' ')
       df.fillna(' ', inplace=True)
-      df['Is Discounted'] = np.where((df['Call LTP'] < df['Call IV']) | (df['Put LTP'] < df['Put IV']), 'Discount', ' ')
-      df = df[['Strikes', 'Call LTP', 'Put LTP', 'Call Premium', 'Put Premium', 'Is Discounted']]
+      df = df[['Strikes','Call LTP', 'Put LTP', 'Call Premium', 'Put Premium', 'Is Discounted']]
+
 
       return self.index, self.convert_df_to_html(self.index, spot_value, futures_value, df)
     
@@ -432,7 +435,7 @@ class FetchOptionData:
     return functions
 
   def convert_df_to_html(self, index, spot_value, fut_value, *dfs):
-    value_diff = round(fut_value - spot_value,2)
+    value_diff = round(fut_value - spot_value, 2)
     html = """
     <style>
         table tr td:nth-child(12){
@@ -455,12 +458,13 @@ class FetchOptionData:
         }
     </style>
     """
-    html += '<div>'
     html += '<div style="display:flex">'
     for df in dfs:
         html += df.T.to_html()
-    html += '</div></div>'
-    html = html.replace('<td>Discount</td>','<td style="background-color: lightgreen; color: black">Discount</td>')
+    html += '</div>'
+    html = html.replace('<table border="1" class="dataframe" style=\'display: block; margin-top:50px\'>', '<table border="1" class="dataframe" style=\'display: block; margin-top:50px;width:100%\'>')
+    html = html.replace("<td>", '<td style="font-size:20px">')
+    html = html.replace('<td style="font-size:20px">Discount</td>','<td style="background-color: lightgreen; color: black"></td>')
     html = html.replace('<th>10</th>','<th style="background-color: #C5C5C5; color: black; text-align: center">ATM</th>')
     html = html.replace("""<th>0</th>\n      <th>1</th>\n      <th>2</th>\n      <th>3</th>\n      <th>4</th>\n      <th>5</th>\n      <th>6</th>\n      <th>7</th>\n      <th>8</th>\n      <th>9</th>\n      """,'<th colspan=10 style="background-color: #32CD32; color: black; text-align: center">Calls</th>')
     html = html.replace("""<th>11</th>\n      <th>12</th>\n      <th>13</th>\n      <th>14</th>\n      <th>15</th>\n      <th>16</th>\n      <th>17</th>\n      <th>18</th>\n      <th>19</th>\n      <th>20</th>\n    """,'<th colspan=10 style="background-color: #FF5C5C; color: black; text-align: center">Puts</th>')
@@ -474,7 +478,7 @@ class FetchOptionData:
     return html
 
   def index_stack(self, dfs):
-    html = '<div style="width: 70%">'
+    html = '<div style="width: 100%;">'
     if isinstance(dfs, list):
       for idx, df in dfs:
         if df is not None:
