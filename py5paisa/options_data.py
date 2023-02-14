@@ -169,7 +169,18 @@ class FetchOptionData:
     step = 11
     spot_diff = 1000 if self.index == 'BANKNIFTY' else 500
     rem = spot%100
-    refined_spot = spot-rem if rem < 50 else spot+(100-rem)
+    if self.index == 'BANKNIFTY': 
+      refined_spot = spot-rem if rem < 50 else spot+(100-rem)
+    else:
+      if rem <= 24:
+        refined_spot = spot-rem
+      elif rem >= 25 and rem <= 74:
+        if rem <= 50:
+          refined_spot = spot + (50 - rem)
+        else:
+          refined_spot = spot - (rem - 50)
+      elif rem >= 75:
+        refined_spot = spot+(100-rem)
 
     call_strikes = np.linspace(refined_spot-spot_diff, refined_spot, step)
     put_strikes = np.linspace(refined_spot, refined_spot+spot_diff, step)
