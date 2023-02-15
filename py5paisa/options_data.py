@@ -251,12 +251,14 @@ class FetchOptionData:
 
       call_df = pd.DataFrame(call_strike_ltp_map)
       call_df['Call IV'] = spot_value - call_df['Strikes']
-      call_df['Call Premium'] = np.where(refined_spot < call_df['Strikes'], np.nan , call_df['Call LTP']-call_df['Call IV'])
+      call_df['Call Premium'] = np.where(call_df['Call IV'] <= 0, call_df['Call LTP'], call_df['Call LTP']-call_df['Call IV'])
+      call_df['Call Premium'] = np.where(refined_spot < call_df['Strikes'], np.nan , call_df['Call Premium'])
       call_df['Call Premium'] = np.where(call_df['Call LTP'] == 0, 0, call_df['Call Premium'])
 
       put_df = pd.DataFrame(put_strike_ltp_map)
       put_df['Put IV'] = put_df['Strikes'] - spot_value
-      put_df['Put Premium'] = np.where(refined_spot > put_df['Strikes'], np.nan, put_df['Put LTP']-put_df['Put IV'])
+      put_df['Put Premium'] = np.where(put_df['Put IV'] <= 0, put_df['Put LTP'], put_df['Put LTP']-put_df['Put IV'])
+      put_df['Put Premium'] = np.where(refined_spot > put_df['Strikes'], np.nan, put_df['Put Premium'])
       put_df['Put Premium'] = np.where(put_df['Put LTP'] == 0, 0, put_df['Put Premium'])
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
