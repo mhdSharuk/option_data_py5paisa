@@ -440,15 +440,33 @@ class FetchOptionData:
     html = """
     <style>
         table tr td:nth-child(12){
-           background-color: #C5C5C5;
-           color: black;
-           text-align:center;
-        }
-        
-        .row{
-          font-size:20px; 
+          font-size:20px;
+          background-color: #C5C5C5;
+          color: black;
           text-align:center;
         }
+
+        table tr td:nth-child(1){text-align:center; font-size:20px;}
+        table tr td:nth-child(2){text-align:center; font-size:20px;}
+        table tr td:nth-child(3){text-align:center; font-size:20px;}
+        table tr td:nth-child(4){text-align:center; font-size:20px;}
+        table tr td:nth-child(5){text-align:center; font-size:20px;}
+        table tr td:nth-child(6){text-align:center; font-size:20px;}
+        table tr td:nth-child(7){text-align:center; font-size:20px;}
+        table tr td:nth-child(8){text-align:center; font-size:20px;}
+        table tr td:nth-child(9){text-align:center; font-size:20px;}
+        table tr td:nth-child(10){text-align:center; font-size:20px;}
+        table tr td:nth-child(11){text-align:center; font-size:20px;}
+        table tr td:nth-child(13){text-align:center; font-size:20px;}
+        table tr td:nth-child(14){text-align:center; font-size:20px;}
+        table tr td:nth-child(15){text-align:center; font-size:20px;}
+        table tr td:nth-child(16){text-align:center; font-size:20px;}
+        table tr td:nth-child(17){text-align:center; font-size:20px;}
+        table tr td:nth-child(18){text-align:center; font-size:20px;}
+        table tr td:nth-child(19){text-align:center; font-size:20px;}
+        table tr td:nth-child(20){text-align:center; font-size:20px;}
+        table tr td:nth-child(21){text-align:center; font-size:20px;}
+        table tr td:nth-child(22){text-align:center; font-size:20px;}
         
         #discount{
           text-align : center; 
@@ -483,13 +501,18 @@ class FetchOptionData:
         .calls{
           background-color: #32CD32; 
           color: black; 
-          text-align: center
+          text-align: center;
+          font-size:15px;
         }
 
         .puts{
           background-color: #FF5C5C; 
           color: black; 
-          text-align: center
+          text-align: center;
+          font-size:15px;
+        }
+        content{
+          margin-left:10px;
         }
     </style>
     """
@@ -498,8 +521,7 @@ class FetchOptionData:
         html += df.T.to_html()
     html += '</div>'
     html = html.replace("""<table border="1" class="dataframe">""", """<table border="1" class="dataframe" id="dataframe">""")
-    html = html.replace("""<td>""", '<td class="row">')
-    html = html.replace("""<td class="row">Discount</td>""",'<td id="discount">Discount</td>')
+    html = html.replace("""<td>Discount</td>""",'<td id="discount">Discount</td>')
     html = html.replace("""<th>10</th>""",'<th class="atm">ATM</th>')
     html = html.replace("""<th>0</th>\n      <th>1</th>\n      <th>2</th>\n      <th>3</th>\n      <th>4</th>\n      <th>5</th>\n      <th>6</th>\n      <th>7</th>\n      <th>8</th>\n      <th>9</th>\n      """,'<th colspan=10 class="calls">Calls</th>')
     html = html.replace("""<th>11</th>\n      <th>12</th>\n      <th>13</th>\n      <th>14</th>\n      <th>15</th>\n      <th>16</th>\n      <th>17</th>\n      <th>18</th>\n      <th>19</th>\n      <th>20</th>\n    """,'<th colspan=10 class="puts">Puts</th>')
