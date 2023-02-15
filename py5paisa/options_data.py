@@ -169,6 +169,7 @@ class FetchOptionData:
     step = 11
     spot_diff = 1000 if self.index == 'BANKNIFTY' else 500
     rem = spot%100
+    refined_spot = None
     if self.index == 'BANKNIFTY': 
       refined_spot = spot-rem if rem < 50 else spot+(100-rem)
     else:
