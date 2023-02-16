@@ -317,7 +317,7 @@ class FetchOptionData:
       return index, option
       
     except Exception as e:
-      print(f'fetchNifty Error : {e}')
+      return index, None
 
   def fetchBankNifty(self):
     try:
@@ -339,7 +339,7 @@ class FetchOptionData:
       return index, option
 
     except Exception as e:
-      print(f'fetchBankNifty Error : {e}')
+      return index, None
 
   def fetchFinNifty(self):
     try:
@@ -360,7 +360,7 @@ class FetchOptionData:
       return index, option
 
     except Exception as e:
-      print(f'fetchFinNifty Error : {e}')
+      return index, None
 
   def smap_parallel(self, f, result):
     try:
@@ -420,9 +420,6 @@ class FetchOptionData:
 
         except KeyboardInterrupt:
           raise KeyboardInterrupt
-
-        except Exception as e:
-          print(f'Stream Error : {e}')
 
   def fetch_required_function(self):
     functions = []
