@@ -130,7 +130,7 @@ class FetchOptionData:
         display(HTML(f"<h2 style='color: #FF4500'>FINNIFTY Option Expiry Date Invalid</h2>"))
       raise InvalidOptionExpiryDateException
 
-    except TypeError as err:
+    except Exception as err:
       display(HTML(f"<h2 style='color: #FF4500'>Unable to fetch expiry dates : {err}</h2>"))
       raise FetchExpiryException
 
