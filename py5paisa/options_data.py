@@ -261,12 +261,26 @@ class FetchOptionData:
       put_df['Put Premium'] = np.where(put_df['Put LTP'] == 0, 0, put_df['Put Premium'])
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
+
+      df['Call Premium'] = df['Call Premium'].astype(float).apply(np.round, 2)
+      df['Put Premium'] = df['Put Premium'] .astype(float).apply(np.round, 2)
+      call_premium = df.iloc[10][3]
+      put_premium = df.iloc[10][4]
+
       df['Is Discounted'] = np.where(((df['Call LTP'] < df['Call IV']) | (df['Put LTP'] < df['Put IV'])) & (df['Call Premium'] != 0) & (df['Put Premium'] != 0), 'Discount', ' ')
+      df['Is Discounted'] = np.where(df['Strikes'] == refined_spot, call_premium - put_premium, df['Is Discounted'])
+
+      if call_premium < put_premium:
+        df['Call Premium'] = np.where(df['Strikes'] == refined_spot, str(call_premium)+'+C', df['Call Premium'])
+        df['Put Premium'] = np.where(df['Strikes'] == refined_spot, str(put_premium)+'+NC', df['Put Premium'])
+      else:
+        df['Put Premium'] = np.where(df['Strikes'] == refined_spot, str(put_premium)+'+C', df['Put Premium'])
+        df['Call Premium'] = np.where(df['Strikes'] == refined_spot, str(call_premium)+'+NC', df['Call Premium'])
+
       df.fillna(' ', inplace=True)
       df = df[['Strikes','Call LTP', 'Put LTP', 'Call Premium', 'Put Premium', 'Is Discounted']]
 
-
-      return self.index, self.convert_df_to_html(self.index, spot_value, futures_value, df)
+      return self.index, self.convert_df_to_html(self.index, spot_value, futures_value, call_premium, put_premium, df)
     
     except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
       return self.index, None
@@ -432,7 +446,7 @@ class FetchOptionData:
 
     return functions
 
-  def convert_df_to_html(self, index, spot_value, fut_value, *dfs):
+  def convert_df_to_html(self, index, spot_value, fut_value, call_premium, put_premium, *dfs):
     value_diff = round(fut_value - spot_value,2)
     html = """
     <style>
@@ -442,7 +456,7 @@ class FetchOptionData:
           color: black;
           text-align:center;
         }
-
+        table tr td:nth-child(0){text-align:center; font-size:20px;}
         table tr td:nth-child(1){text-align:center; font-size:20px;}
         table tr td:nth-child(2){text-align:center; font-size:20px;}
         table tr td:nth-child(3){text-align:center; font-size:20px;}
@@ -464,7 +478,7 @@ class FetchOptionData:
         table tr td:nth-child(20){text-align:center; font-size:20px;}
         table tr td:nth-child(21){text-align:center; font-size:20px;}
         table tr td:nth-child(22){text-align:center; font-size:20px;}
-        
+
         #discount{
           text-align : center; 
           background-color : lightgreen; 
@@ -472,36 +486,30 @@ class FetchOptionData:
           font-weight : bold; 
           font-size : 16px
         }
-
         .set{
           border-bottom: 5px double white;
           padding: 10px;
         }
-
         caption{
           font-size: 18px;
           font-weight: bold;
           padding: 5px;
         }
-
         #dataframe{
           margin-top : 30px;
           width : 100%;
         }
-
         .atm{
           background-color: #C5C5C5; 
           color: black; 
           text-align: center;
         }
-
         .calls{
           background-color: #32CD32; 
           color: black; 
           text-align: center;
           font-size:15px;
         }
-
         .puts{
           background-color: #FF5C5C; 
           color: black; 
@@ -529,7 +537,17 @@ class FetchOptionData:
             <caption>{index} Spot : {spot_value}</caption>
             <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
         """)
+    
+    if call_premium < put_premium:
+      html = html.replace(f"<td>{call_premium}+C</td>", f"<td style='background-color:#32CD32'>{call_premium}</td>")
+      html = html.replace(f"<td>{put_premium}+NC</td>", f"<td style='background-color:#FF5C5C'>{put_premium}</td>")
+    elif put_premium < call_premium:
+      html = html.replace(f"<td>{put_premium}+C</td>", f"<td style='background-color:#32CD32'>{put_premium}</td>")
+      html = html.replace(f"<td>{call_premium}+NC</td>", f"<td style='background-color:#FF5C5C'>{call_premium}</td>")
+
+    html = html.replace("<td>nan</td>", "<td></td>")
     return html
+
 
   def index_stack(self, dfs):
     html = '<div style="width: 100%;">'
