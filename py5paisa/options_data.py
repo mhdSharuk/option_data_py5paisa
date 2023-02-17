@@ -262,20 +262,11 @@ class FetchOptionData:
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
 
-      df['Call Premium'] = df['Call Premium'].astype(float).apply(np.round, 2)
-      df['Put Premium'] = df['Put Premium'] .astype(float).apply(np.round, 2)
       call_premium = df.iloc[10][3]
       put_premium = df.iloc[10][4]
 
       df['Is Discounted'] = np.where(((df['Call LTP'] < df['Call IV']) | (df['Put LTP'] < df['Put IV'])) & (df['Call Premium'] != 0) & (df['Put Premium'] != 0), 'Discount', ' ')
       df['Is Discounted'] = np.where(df['Strikes'] == refined_spot, call_premium - put_premium, df['Is Discounted'])
-
-      if call_premium < put_premium:
-        df['Call Premium'] = np.where(df['Strikes'] == refined_spot, str(call_premium)+'+C', df['Call Premium'])
-        df['Put Premium'] = np.where(df['Strikes'] == refined_spot, str(put_premium)+'+NC', df['Put Premium'])
-      else:
-        df['Put Premium'] = np.where(df['Strikes'] == refined_spot, str(put_premium)+'+C', df['Put Premium'])
-        df['Call Premium'] = np.where(df['Strikes'] == refined_spot, str(call_premium)+'+NC', df['Call Premium'])
 
       df.fillna(' ', inplace=True)
       df = df[['Strikes','Call LTP', 'Put LTP', 'Call Premium', 'Put Premium', 'Is Discounted']]
@@ -504,6 +495,7 @@ class FetchOptionData:
           color: black; 
           text-align: center;
         }
+
         .calls{
           background-color: #32CD32; 
           color: black; 
@@ -519,8 +511,26 @@ class FetchOptionData:
         content{
           margin-left:10px;
         }
-    </style>
     """
+    if call_premium < put_premium:
+      html += """
+        tbody tr:nth-child(4) td:nth-child(12){
+          background-color:#32CD32;
+        }
+        tbody tr:nth-child(5) td:nth-child(12){
+          background-color:#FF5C5C;
+        }
+      """
+    elif put_premium < call_premium:
+      html += """
+        tbody tr:nth-child(5) td:nth-child(12){
+          background-color:#32CD32;
+        }
+        tbody tr:nth-child(4) td:nth-child(12){
+          background-color:#FF5C5C;
+        }
+      """
+    html += '</style>'
     html += '<div style="padding-left:30px; padding-right:30px">'
     for df in dfs:
         html += df.T.to_html()
@@ -538,14 +548,6 @@ class FetchOptionData:
             <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
         """)
     
-    if call_premium < put_premium:
-      html = html.replace(f"<td>{call_premium}+C</td>", f"<td style='background-color:#32CD32'>{call_premium}</td>")
-      html = html.replace(f"<td>{put_premium}+NC</td>", f"<td style='background-color:#FF5C5C'>{put_premium}</td>")
-    elif put_premium < call_premium:
-      html = html.replace(f"<td>{put_premium}+C</td>", f"<td style='background-color:#32CD32'>{put_premium}</td>")
-      html = html.replace(f"<td>{call_premium}+NC</td>", f"<td style='background-color:#FF5C5C'>{call_premium}</td>")
-
-    html = html.replace("<td>nan</td>", "<td></td>")
     return html
 
 
