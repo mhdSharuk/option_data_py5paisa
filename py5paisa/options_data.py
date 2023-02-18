@@ -263,15 +263,18 @@ class FetchOptionData:
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
 
       call_premium = df.iloc[10][3]
-      put_premium = df.iloc[10][4]
+      put_premium = df.iloc[10][-1]
+      max_value = max(call_premium, put_premium)
+      min_value = min(call_premium, put_premium)
+      percentage_diff = round(((max_value - min_value)/max_value)*100, 2)
 
       df['Is Discounted'] = np.where(((df['Call LTP'] < df['Call IV']) | (df['Put LTP'] < df['Put IV'])) & (df['Call Premium'] != 0) & (df['Put Premium'] != 0), 'Discount', ' ')
-      df['Is Discounted'] = np.where(df['Strikes'] == refined_spot, call_premium - put_premium, df['Is Discounted'])
+      df['Is Discounted'] = np.where(df['Strikes'] == refined_spot, str(round(abs(call_premium - put_premium),2)) + f' ({percentage_diff}%)', df['Is Discounted'])
 
       df.fillna(' ', inplace=True)
       df = df[['Strikes','Call LTP', 'Put LTP', 'Call Premium', 'Put Premium', 'Is Discounted']]
 
-      return self.index, self.convert_df_to_html(self.index, spot_value, futures_value, call_premium, put_premium, df)
+      return self.index, self.convert_df_to_html(self.index, spot_value, futures_value, call_premium, put_premium, percentage_diff, df)
     
     except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
       return self.index, None
@@ -437,7 +440,7 @@ class FetchOptionData:
 
     return functions
 
-  def convert_df_to_html(self, index, spot_value, fut_value, call_premium, put_premium, *dfs):
+  def convert_df_to_html(self, index, spot_value, fut_value, call_premium, put_premium, percentage_diff, *dfs):
     value_diff = round(fut_value - spot_value,2)
     html = """
     <style>
@@ -477,19 +480,23 @@ class FetchOptionData:
           font-weight : bold; 
           font-size : 16px
         }
+
         .set{
           border-bottom: 5px double white;
           padding: 10px;
         }
+
         caption{
           font-size: 18px;
           font-weight: bold;
           padding: 5px;
         }
+
         #dataframe{
           margin-top : 30px;
           width : 100%;
         }
+
         .atm{
           background-color: #C5C5C5; 
           color: black; 
@@ -502,12 +509,14 @@ class FetchOptionData:
           text-align: center;
           font-size:15px;
         }
+
         .puts{
           background-color: #FF5C5C; 
           color: black; 
           text-align: center;
           font-size:15px;
         }
+
         content{
           margin-left:10px;
         }
@@ -547,7 +556,8 @@ class FetchOptionData:
             <caption>{index} Spot : {spot_value}</caption>
             <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
         """)
-    
+
+    html = html.replace("<td>nan</td>", "<td></td>")
     return html
 
 
