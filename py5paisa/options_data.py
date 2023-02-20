@@ -526,17 +526,11 @@ class FetchOptionData:
         tbody tr:nth-child(4) td:nth-child(12){
           background-color:#32CD32;
         }
-        tbody tr:nth-child(5) td:nth-child(12){
-          background-color:#FF5C5C;
-        }
       """
     elif put_premium < call_premium:
       html += """
         tbody tr:nth-child(5) td:nth-child(12){
           background-color:#32CD32;
-        }
-        tbody tr:nth-child(4) td:nth-child(12){
-          background-color:#FF5C5C;
         }
       """
     html += '</style>'
