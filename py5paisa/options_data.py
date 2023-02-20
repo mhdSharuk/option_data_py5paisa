@@ -322,10 +322,10 @@ class FetchOptionData:
 
       index, option = self.run(spot, futures, option_chain)
 
-      return index, option
+      return 'NIFTY', option
       
     except Exception as e:
-      return index, None
+      return 'NIFTY', None
 
   def fetchBankNifty(self):
     try:
@@ -344,10 +344,10 @@ class FetchOptionData:
 
       index, option = self.run(spot, futures, option_chain)
 
-      return index, option
+      return 'BANKNIFTY', option
 
     except Exception as e:
-      return index, None
+      return 'BANKNIFTY', None
 
   def fetchFinNifty(self):
     try:
@@ -365,10 +365,10 @@ class FetchOptionData:
       option_chain = value_result['OPTION_CHAIN']      
       index, option = self.run(spot, futures, option_chain)
 
-      return index, option
+      return 'FINNIFTY', option
 
     except Exception as e:
-      return index, None
+      return 'FINNIFTY', None
 
   def smap_parallel(self, f, result):
     try:
