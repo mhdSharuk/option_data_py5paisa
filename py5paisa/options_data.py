@@ -391,7 +391,6 @@ class FetchOptionData:
       result.update({idx : opt})
 
     except Exception as e:
-      print(f'smap_parallel Error : {e}')
       raise OptionChainFetchException
 
   def smap(self, f):
@@ -399,7 +398,7 @@ class FetchOptionData:
       return f()
 
     except Exception as e:
-      print(f'smap Error : {e}')
+      raise OptionChainFetchException
 
   def stream(self):
     functions = self.fetch_required_function()
