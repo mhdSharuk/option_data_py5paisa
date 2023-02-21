@@ -165,12 +165,12 @@ class FetchOptionData:
         else:
           self.is_finnifty_opt_date_valid = False
 
-  def getStrikes(self, spot):
+  def getStrikes(self, index, spot):
     step = 11
-    spot_diff = 1000 if self.index == 'BANKNIFTY' else 500
+    spot_diff = 1000 if index == 'BANKNIFTY' else 500
     rem = spot%100
-    refined_spot = None
-    if self.index == 'BANKNIFTY': 
+    #refined_spot = None
+    if index == 'BANKNIFTY': 
       refined_spot = spot-rem if rem < 50 else spot+(100-rem)
     else:
       if rem <= 24:
@@ -186,7 +186,7 @@ class FetchOptionData:
     call_strikes = np.linspace(refined_spot-spot_diff, refined_spot, step)
     put_strikes = np.linspace(refined_spot, refined_spot+spot_diff, step)
 
-    if self.index == 'BANKNIFTY':
+    if index == 'BANKNIFTY':
       call_strikes = np.append(call_strikes, [call_strikes[-1]+100])
       put_strikes = np.insert(put_strikes, 0, put_strikes[0]-100)
     else:
@@ -212,7 +212,7 @@ class FetchOptionData:
     response = self.client.get_option_chain("N", index, time_code)
     result.update({'OPTION_CHAIN':response})
 
-  def run(self, spot, futures, option_chain):
+  def run(self, index, spot, futures, option_chain):
     try:
       if spot is not None:
         if len(spot['lastrate']) == 0:
@@ -222,14 +222,14 @@ class FetchOptionData:
 
       if futures is not None:
         if futures['Data'] is None:
-          display(HTML(f"<h2 style='color: #FF4500'>Error Fetching {self.index} Futures Value</h2>"))
+          display(HTML(f"<h2 style='color: #FF4500'>Error Fetching {index} Futures Value</h2>"))
           raise FuturesFetchException
       else:
         raise FuturesFetchException
 
       if option_chain is not None:
         if len(option_chain['Options']) == 0:
-          display(HTML(f"<h2 style='color: #FF4500'>Error Fetching {self.index} Option Chain</h2>"))
+          display(HTML(f"<h2 style='color: #FF4500'>Error Fetching {index} Option Chain</h2>"))
           raise OptionChainFetchException
       else:
         raise OptionChainFetchException
@@ -278,7 +278,7 @@ class FetchOptionData:
       return index, self.convert_df_to_html(index, spot_value, futures_value, cheap_premium, percentage_diff, df)
     
     except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
-      return self.index, None
+      return index, None
   
   def fetch_values(self, result):
     try:
@@ -306,22 +306,22 @@ class FetchOptionData:
         j.kill()
       raise KeyboardInterrupt
 
-  def fetchNifty(self):
+    def fetchNifty(self):
     try:
-      self.index = 'NIFTY'
-      self.fut_expiry = self.BNF_NIFTY_FUT_EXPIRY
-      self.time_code = self.NF_BNF_OPT_EXPIRY_EPOCH_TIME
+      index = 'NIFTY'
+      fut_expiry = self.BNF_NIFTY_FUT_EXPIRY
+      time_code = self.NF_BNF_OPT_EXPIRY_EPOCH_TIME
 
       manager = multiprocessing.Manager()
       value_result = manager.dict()
       
-      self.fetch_values(value_result)
+      self.fetch_values(index, fut_expiry, time_code, value_result)
 
       spot = value_result['SPOT']
       futures = value_result['FUTURES']
       option_chain = value_result['OPTION_CHAIN']    
 
-      index, option = self.run(spot, futures, option_chain)
+      index, option = self.run(index, spot, futures, option_chain)
 
       return 'NIFTY', option
       
@@ -330,20 +330,19 @@ class FetchOptionData:
 
   def fetchBankNifty(self):
     try:
-      self.index = 'BANKNIFTY'
-      self.fut_expiry = self.BNF_NIFTY_FUT_EXPIRY
-      self.time_code = self.NF_BNF_OPT_EXPIRY_EPOCH_TIME
+      index = 'BANKNIFTY'
+      fut_expiry = self.BNF_NIFTY_FUT_EXPIRY
+      time_code = self.NF_BNF_OPT_EXPIRY_EPOCH_TIME
 
       manager = multiprocessing.Manager()
       value_result = manager.dict()
       
-      self.fetch_values(value_result)
+      self.fetch_values(index, fut_expiry, time_code, value_result)
 
       spot = value_result['SPOT']
       futures = value_result['FUTURES']
       option_chain = value_result['OPTION_CHAIN']      
-
-      index, option = self.run(spot, futures, option_chain)
+      index, option = self.run(index, spot, futures, option_chain)
 
       return 'BANKNIFTY', option
 
@@ -352,19 +351,19 @@ class FetchOptionData:
 
   def fetchFinNifty(self):
     try:
-      self.index = 'FINNIFTY'
-      self.fut_expiry = self.FINNIFTY_FUT_EXPIRY
-      self.time_code =  self.FIN_OPT_EXPIRY_EPOCH_TIME
+      index = 'FINNIFTY'
+      fut_expiry = self.FINNIFTY_FUT_EXPIRY
+      time_code =  self.FIN_OPT_EXPIRY_EPOCH_TIME
 
       manager = multiprocessing.Manager()
       value_result = manager.dict()
       
-      self.fetch_values(value_result)
+      self.fetch_values(index, fut_expiry, time_code, value_result)
 
       spot = value_result['SPOT']
       futures = value_result['FUTURES']
       option_chain = value_result['OPTION_CHAIN']      
-      index, option = self.run(spot, futures, option_chain)
+      index, option = self.run(index, spot, futures, option_chain)
 
       return 'FINNIFTY', option
 
