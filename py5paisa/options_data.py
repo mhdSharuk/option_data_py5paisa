@@ -280,16 +280,16 @@ class FetchOptionData:
     except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
       return index, None
   
-  def fetch_values(self, result):
+  def fetch_values(self, index, fut_expiry, time_code, result):
     try:
       child_jobs = []
-      spot_process = CustomMultiProcess(target=self.getSpot, args=(result, self.index))
+      spot_process = CustomMultiProcess(target=self.getSpot, args=(result, index))
       child_jobs.append(spot_process)
 
-      fut_process = CustomMultiProcess(target=self.getFutures, args=(result, self.index, self.fut_expiry))
+      fut_process = CustomMultiProcess(target=self.getFutures, args=(result, index, fut_expiry))
       child_jobs.append(fut_process)
 
-      option_chain_process = CustomMultiProcess(target=self.get_option_chain, args=(result, self.index, self.time_code))
+      option_chain_process = CustomMultiProcess(target=self.get_option_chain, args=(result, index, time_code))
       child_jobs.append(option_chain_process)
 
       for j in child_jobs:
