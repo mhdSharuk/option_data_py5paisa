@@ -238,43 +238,44 @@ class FetchOptionData:
       futures_value = futures['Data'][0]['LastTradedPrice']
       option_chain = option_chain['Options']
 
-      refined_spot, call_strikes, put_strikes = self.getStrikes(spot_value)
-      call_strike_ltp_map = {'Strikes':[], 'Call LTP':[]}
-      put_strike_ltp_map = {'Strikes':[], 'Put LTP':[]}
+      refined_spot, call_strikes, put_strikes = self.getStrikes(index, spot_value)
+      call_strike_ltp_map = {'Strikes':[], 'CE LTP':[]}
+      put_strike_ltp_map = {'Strikes':[], 'PE LTP':[]}
 
       for oc in option_chain:
         if oc['CPType'] == 'CE' and oc['StrikeRate'] in call_strikes:
           call_strike_ltp_map['Strikes'].append(oc['StrikeRate'])
-          call_strike_ltp_map['Call LTP'].append(oc['LastRate'])
+          call_strike_ltp_map['CE LTP'].append(oc['LastRate'])
         if oc['CPType'] == 'PE' and oc['StrikeRate'] in put_strikes:
           put_strike_ltp_map['Strikes'].append(oc['StrikeRate'])
-          put_strike_ltp_map['Put LTP'].append(oc['LastRate'])
+          put_strike_ltp_map['PE LTP'].append(oc['LastRate'])
 
       call_df = pd.DataFrame(call_strike_ltp_map)
-      call_df['Call IV'] = spot_value - call_df['Strikes']
-      call_df['Call Premium'] = np.where(call_df['Call IV'] <= 0, call_df['Call LTP'], call_df['Call LTP']-call_df['Call IV'])
-      call_df['Call Premium'] = np.where(call_df['Call LTP'] == 0, 0, call_df['Call Premium'])
+      call_df['CE IV'] = spot_value - call_df['Strikes']
+      call_df['CE Premium'] = np.where(call_df['CE IV'] <= 0, call_df['CE LTP'], call_df['CE LTP']-call_df['CE IV'])
+      call_df['CE Premium'] = np.where(call_df['CE LTP'] == 0, 0, call_df['CE Premium'])
 
       put_df = pd.DataFrame(put_strike_ltp_map)
-      put_df['Put IV'] = put_df['Strikes'] - spot_value
-      put_df['Put Premium'] = np.where(put_df['Put IV'] <= 0, put_df['Put LTP'], put_df['Put LTP']-put_df['Put IV'])
-      put_df['Put Premium'] = np.where(put_df['Put LTP'] == 0, 0, put_df['Put Premium'])
+      put_df['PE IV'] = put_df['Strikes'] - spot_value
+      put_df['PE Premium'] = np.where(put_df['PE IV'] <= 0, put_df['PE LTP'], put_df['PE LTP']-put_df['PE IV'])
+      put_df['PE Premium'] = np.where(put_df['PE LTP'] == 0, 0, put_df['PE Premium'])
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
 
-      call_premium = df.iloc[10][3]
-      put_premium = df.iloc[10][-1]
+      call_premium = float(df.iloc[10][3])
+      put_premium = float(df.iloc[10][-1])
+      cheap_premium = 'CE' if call_premium < put_premium else 'PE'
       max_value = max(call_premium, put_premium)
       min_value = min(call_premium, put_premium)
       percentage_diff = round(((max_value - min_value)/max_value)*100, 2)
 
-      df['Is Discounted'] = np.where(((df['Call LTP'] < df['Call IV']) | (df['Put LTP'] < df['Put IV'])) & (df['Call Premium'] != 0) & (df['Put Premium'] != 0), 'Discount', ' ')
-      df['Is Discounted'] = np.where(df['Strikes'] == refined_spot, str(round(abs(call_premium - put_premium),2)) + f' ({percentage_diff}%)', df['Is Discounted'])
+      df['Discount'] = np.where(((df['CE LTP'] < df['CE IV']) | (df['PE LTP'] < df['PE IV'])) & (df['CE Premium'] != 0) & (df['PE Premium'] != 0), 'Discount', ' ')
+      df['Discount'] = np.where(df['Strikes'] == refined_spot, str(round(abs(call_premium - put_premium),2)) + f' ({percentage_diff}%)', df['Discount'])
 
       df.fillna(' ', inplace=True)
-      df = df[['Strikes','Call LTP', 'Put LTP', 'Call Premium', 'Put Premium', 'Is Discounted']]
+      df = df[['Strikes','CE LTP', 'PE LTP', 'CE Premium', 'PE Premium', 'Discount']]
 
-      return self.index, self.convert_df_to_html(self.index, spot_value, futures_value, call_premium, put_premium, percentage_diff, df)
+      return index, self.convert_df_to_html(index, spot_value, futures_value, cheap_premium, percentage_diff, df)
     
     except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
       return self.index, None
@@ -440,100 +441,90 @@ class FetchOptionData:
 
     return functions
 
-  def convert_df_to_html(self, index, spot_value, fut_value, call_premium, put_premium, percentage_diff, *dfs):
+  def convert_df_to_html(self, index, spot_value, fut_value, cheap_premium, percentage_diff, *dfs):
     value_diff = round(fut_value - spot_value,2)
-    html = """
-    <style>
+    if cheap_premium == 'CE':
+      html = """
+      <style>
+        tr:nth-child(4) td:nth-child(12){
+            background-color:#32CD32;
+        }
+    """
+    elif cheap_premium == 'PE':
+      html = """
+      <style>
+        tr:nth-child(5) td:nth-child(12){
+          background-color:#32CD32;
+        }
+    """
+    html += """
         table tr td:nth-child(12){
-          font-size:20px;
           background-color: #C5C5C5;
           color: black;
           text-align:center;
         }
-        table tr td:nth-child(0){text-align:center; font-size:20px;}
-        table tr td:nth-child(1){text-align:center; font-size:20px;}
-        table tr td:nth-child(2){text-align:center; font-size:20px;}
-        table tr td:nth-child(3){text-align:center; font-size:20px;}
-        table tr td:nth-child(4){text-align:center; font-size:20px;}
-        table tr td:nth-child(5){text-align:center; font-size:20px;}
-        table tr td:nth-child(6){text-align:center; font-size:20px;}
-        table tr td:nth-child(7){text-align:center; font-size:20px;}
-        table tr td:nth-child(8){text-align:center; font-size:20px;}
-        table tr td:nth-child(9){text-align:center; font-size:20px;}
-        table tr td:nth-child(10){text-align:center; font-size:20px;}
-        table tr td:nth-child(11){text-align:center; font-size:20px;}
-        table tr td:nth-child(13){text-align:center; font-size:20px;}
-        table tr td:nth-child(14){text-align:center; font-size:20px;}
-        table tr td:nth-child(15){text-align:center; font-size:20px;}
-        table tr td:nth-child(16){text-align:center; font-size:20px;}
-        table tr td:nth-child(17){text-align:center; font-size:20px;}
-        table tr td:nth-child(18){text-align:center; font-size:20px;}
-        table tr td:nth-child(19){text-align:center; font-size:20px;}
-        table tr td:nth-child(20){text-align:center; font-size:20px;}
-        table tr td:nth-child(21){text-align:center; font-size:20px;}
-        table tr td:nth-child(22){text-align:center; font-size:20px;}
+        table tr td:nth-child(0){text-align:center;}
+        table tr td:nth-child(1){text-align:center;}
+        table tr td:nth-child(2){text-align:center;}
+        table tr td:nth-child(3){text-align:center;}
+        table tr td:nth-child(4){text-align:center;}
+        table tr td:nth-child(5){text-align:center;}
+        table tr td:nth-child(6){text-align:center;}
+        table tr td:nth-child(7){text-align:center;}
+        table tr td:nth-child(8){text-align:center;}
+        table tr td:nth-child(9){text-align:center;}
+        table tr td:nth-child(10){text-align:center;}
+        table tr td:nth-child(11){text-align:center;}
+        table tr td:nth-child(13){text-align:center;}
+        table tr td:nth-child(14){text-align:center;}
+        table tr td:nth-child(15){text-align:center;}
+        table tr td:nth-child(16){text-align:center;}
+        table tr td:nth-child(17){text-align:center;}
+        table tr td:nth-child(18){text-align:center;}
+        table tr td:nth-child(19){text-align:center;}
+        table tr td:nth-child(20){text-align:center;}
+        table tr td:nth-child(21){text-align:center;}
+        table tr td:nth-child(22){text-align:center;}
 
         #discount{
           text-align : center; 
           background-color : lightgreen; 
           color : black; 
           font-weight : bold; 
-          font-size : 16px
         }
-
         .set{
           border-bottom: 5px double white;
           padding: 10px;
         }
-
         caption{
-          font-size: 18px;
           font-weight: bold;
           padding: 5px;
         }
-
         #dataframe{
           margin-top : 30px;
           width : 100%;
         }
-
         .atm{
           background-color: #C5C5C5; 
           color: black; 
           text-align: center;
         }
-
         .calls{
           background-color: #32CD32; 
           color: black; 
           text-align: center;
-          font-size:15px;
         }
-
         .puts{
           background-color: #FF5C5C; 
           color: black; 
           text-align: center;
-          font-size:15px;
         }
-
         content{
           margin-left:10px;
         }
+    </style>
     """
-    if call_premium < put_premium:
-      html += """
-        tbody tr:nth-child(4) td:nth-child(12){
-          background-color:#32CD32;
-        }
-      """
-    elif put_premium < call_premium:
-      html += """
-        tbody tr:nth-child(5) td:nth-child(12){
-          background-color:#32CD32;
-        }
-      """
-    html += '</style>'
+
     html += '<div style="padding-left:30px; padding-right:30px">'
     for df in dfs:
         html += df.T.to_html()
@@ -553,7 +544,6 @@ class FetchOptionData:
 
     html = html.replace("<td>nan</td>", "<td></td>")
     return html
-
 
   def index_stack(self, dfs):
     html = '<div style="width: 100%;">'
