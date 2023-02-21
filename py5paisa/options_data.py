@@ -171,20 +171,20 @@ class FetchOptionData:
     rem = spot%100
     #refined_spot = None
     if index == 'BANKNIFTY': 
-      refined_spot = spot-rem if rem < 50 else spot+(100-rem)
+      spot = spot-rem if rem < 50 else spot+(100-rem)
     else:
       if rem <= 24:
-        refined_spot = spot-rem
+        spot = spot-rem
       elif rem >= 25 and rem <= 74:
         if rem <= 50:
-          refined_spot = spot + (50 - rem)
+          spot = spot + (50 - rem)
         else:
-          refined_spot = spot - (rem - 50)
+          spot = spot - (rem - 50)
       elif rem >= 75:
-        refined_spot = spot+(100-rem)
+        spot = spot+(100-rem)
 
-    call_strikes = np.linspace(refined_spot-spot_diff, refined_spot, step)
-    put_strikes = np.linspace(refined_spot, refined_spot+spot_diff, step)
+    call_strikes = np.linspace(spot-spot_diff, spot, step)
+    put_strikes = np.linspace(spot, spot+spot_diff, step)
 
     if index == 'BANKNIFTY':
       call_strikes = np.append(call_strikes, [call_strikes[-1]+100])
@@ -193,7 +193,7 @@ class FetchOptionData:
       call_strikes = np.append(call_strikes, [call_strikes[-1]+50])
       put_strikes = np.insert(put_strikes, 0, put_strikes[0]-50)
 
-    return refined_spot, call_strikes, put_strikes   
+    return spot, call_strikes, put_strikes   
 
   def getSpot(self, result, index):
     response = self.client.get_expiry('N', index)
