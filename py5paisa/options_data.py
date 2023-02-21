@@ -462,6 +462,11 @@ class FetchOptionData:
           color: black;
           text-align:center;
         }
+        
+        table tr:nth-child(1){
+          font-weight:bold;
+        }
+        
         table tr td:nth-child(0){text-align:center;}
         table tr td:nth-child(1){text-align:center;}
         table tr td:nth-child(2){text-align:center;}
