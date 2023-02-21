@@ -306,7 +306,7 @@ class FetchOptionData:
         j.kill()
       raise KeyboardInterrupt
 
-    def fetchNifty(self):
+  def fetchNifty(self):
     try:
       index = 'NIFTY'
       fut_expiry = self.BNF_NIFTY_FUT_EXPIRY
@@ -314,7 +314,7 @@ class FetchOptionData:
 
       manager = multiprocessing.Manager()
       value_result = manager.dict()
-      
+
       self.fetch_values(index, fut_expiry, time_code, value_result)
 
       spot = value_result['SPOT']
@@ -324,7 +324,7 @@ class FetchOptionData:
       index, option = self.run(index, spot, futures, option_chain)
 
       return 'NIFTY', option
-      
+
     except Exception as e:
       return 'NIFTY', None
 
