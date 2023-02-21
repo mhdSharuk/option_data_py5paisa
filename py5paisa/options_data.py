@@ -264,13 +264,28 @@ class FetchOptionData:
 
       call_premium = float(df.iloc[10][3])
       put_premium = float(df.iloc[10][-1])
-      cheap_premium = 'CE' if call_premium < put_premium else 'PE'
+      if call_premium < put_premium:
+        cheap_premium = 'CE'
+        style = """
+          tr:nth-child(4) th{
+            background-color:#32CD32;
+            color: black;
+          }
+        """
+      elif put_premium < call_premium:
+        cheap_premium = 'PE'
+        style = """
+          tr:nth-child(5) th{
+            background-color:#32CD32;
+            color: black;
+          }"""
+
       max_value = max(call_premium, put_premium)
       min_value = min(call_premium, put_premium)
       percentage_diff = round(((max_value - min_value)/max_value)*100, 2)
 
       df['Discount'] = np.where(((df['CE LTP'] < df['CE IV']) | (df['PE LTP'] < df['PE IV'])) & (df['CE Premium'] != 0) & (df['PE Premium'] != 0), 'Discount', ' ')
-      df['Discount'] = np.where(df['Strikes'] == refined_spot, str(round(abs(call_premium - put_premium),2)) + f' ({percentage_diff}%)', df['Discount'])
+      df['Discount'] = np.where(df['Strikes'] == refined_spot, str(round(abs(call_premium - put_premium),2)) + f'<br>({percentage_diff}%)', df['Discount'])
 
       df.fillna(' ', inplace=True)
       df = df[['Strikes','CE LTP', 'PE LTP', 'CE Premium', 'PE Premium', 'Discount']]
@@ -442,65 +457,55 @@ class FetchOptionData:
 
   def convert_df_to_html(self, index, spot_value, fut_value, cheap_premium, percentage_diff, *dfs):
     value_diff = round(fut_value - spot_value,2)
-    if cheap_premium == 'CE':
-      html = """
+    html = """
       <style>
-        tr:nth-child(4) td:nth-child(12){
-            background-color:#32CD32;
-        }
-    """
-    elif cheap_premium == 'PE':
-      html = """
-      <style>
-        tr:nth-child(5) td:nth-child(12){
-          background-color:#32CD32;
-        }
-    """
-    html += """
         table tr td:nth-child(12){
+          font-size:20px;
           background-color: #C5C5C5;
           color: black;
           text-align:center;
         }
-        
+
         table tr:nth-child(1){
           font-weight:bold;
         }
-        
-        table tr td:nth-child(0){text-align:center;}
-        table tr td:nth-child(1){text-align:center;}
-        table tr td:nth-child(2){text-align:center;}
-        table tr td:nth-child(3){text-align:center;}
-        table tr td:nth-child(4){text-align:center;}
-        table tr td:nth-child(5){text-align:center;}
-        table tr td:nth-child(6){text-align:center;}
-        table tr td:nth-child(7){text-align:center;}
-        table tr td:nth-child(8){text-align:center;}
-        table tr td:nth-child(9){text-align:center;}
-        table tr td:nth-child(10){text-align:center;}
-        table tr td:nth-child(11){text-align:center;}
-        table tr td:nth-child(13){text-align:center;}
-        table tr td:nth-child(14){text-align:center;}
-        table tr td:nth-child(15){text-align:center;}
-        table tr td:nth-child(16){text-align:center;}
-        table tr td:nth-child(17){text-align:center;}
-        table tr td:nth-child(18){text-align:center;}
-        table tr td:nth-child(19){text-align:center;}
-        table tr td:nth-child(20){text-align:center;}
-        table tr td:nth-child(21){text-align:center;}
-        table tr td:nth-child(22){text-align:center;}
+
+        table tr td:nth-child(0){text-align:center; font-size:20px;}
+        table tr td:nth-child(1){text-align:center; font-size:20px;}
+        table tr td:nth-child(2){text-align:center; font-size:20px;}
+        table tr td:nth-child(3){text-align:center; font-size:20px;}
+        table tr td:nth-child(4){text-align:center; font-size:20px;}
+        table tr td:nth-child(5){text-align:center; font-size:20px;}
+        table tr td:nth-child(6){text-align:center; font-size:20px;}
+        table tr td:nth-child(7){text-align:center; font-size:20px;}
+        table tr td:nth-child(8){text-align:center; font-size:20px;}
+        table tr td:nth-child(9){text-align:center; font-size:20px;}
+        table tr td:nth-child(10){text-align:center; font-size:20px;}
+        table tr td:nth-child(11){text-align:center; font-size:20px;}
+        table tr td:nth-child(13){text-align:center; font-size:20px;}
+        table tr td:nth-child(14){text-align:center; font-size:20px;}
+        table tr td:nth-child(15){text-align:center; font-size:20px;}
+        table tr td:nth-child(16){text-align:center; font-size:20px;}
+        table tr td:nth-child(17){text-align:center; font-size:20px;}
+        table tr td:nth-child(18){text-align:center; font-size:20px;}
+        table tr td:nth-child(19){text-align:center; font-size:20px;}
+        table tr td:nth-child(20){text-align:center; font-size:20px;}
+        table tr td:nth-child(21){text-align:center; font-size:20px;}
+        table tr td:nth-child(22){text-align:center; font-size:20px;}
 
         #discount{
           text-align : center; 
           background-color : lightgreen; 
           color : black; 
           font-weight : bold; 
+          font-size : 16px
         }
         .set{
           border-bottom: 5px double white;
           padding: 10px;
         }
         caption{
+          font-size: 18px;
           font-weight: bold;
           padding: 5px;
         }
@@ -517,11 +522,13 @@ class FetchOptionData:
           background-color: #32CD32; 
           color: black; 
           text-align: center;
+          font-size:15px;
         }
         .puts{
           background-color: #FF5C5C; 
           color: black; 
           text-align: center;
+          font-size:15px;
         }
         content{
           margin-left:10px;
@@ -538,15 +545,16 @@ class FetchOptionData:
     html = html.replace("""<th>10</th>""",'<th class="atm">ATM</th>')
     html = html.replace("""<th>0</th>\n      <th>1</th>\n      <th>2</th>\n      <th>3</th>\n      <th>4</th>\n      <th>5</th>\n      <th>6</th>\n      <th>7</th>\n      <th>8</th>\n      <th>9</th>\n      """,'<th colspan=10 class="calls">Calls</th>')
     html = html.replace("""<th>11</th>\n      <th>12</th>\n      <th>13</th>\n      <th>14</th>\n      <th>15</th>\n      <th>16</th>\n      <th>17</th>\n      <th>18</th>\n      <th>19</th>\n      <th>20</th>\n    """,'<th colspan=10 class="puts">Puts</th>')
+    color = '#32CD32' if cheap_premium == 'CE' else '#FF5C5C'
     html = html.replace(
         """<table border="1" class="dataframe" id="dataframe">""", 
         f"""
         <table border="1" class="dataframe" id="dataframe">
-            <caption>{index} Spot : {spot_value}</caption>
+            <caption>{index} Spot : {spot_value} <span style='color:{color}'>({cheap_premium})</span></caption>
             <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
         """)
 
-    html = html.replace("<td>nan</td>", "<td></td>")
+    html = html.replace("&lt;br&gt;",  "<br>")
     return html
 
   def index_stack(self, dfs):
