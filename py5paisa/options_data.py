@@ -452,8 +452,13 @@ class FetchOptionData:
     html = f"""<style>{style}"""
     html += """
         tr{
-          height:20px;
+          line-height:30px;
         }
+
+        tbody tr th:nth-child(1){
+          width:5000px;
+        }
+
         table tr td:nth-child(12){
           background-color: #C5C5C5;
           color: black;
