@@ -262,16 +262,31 @@ class FetchOptionData:
 
       df = pd.merge(call_df, put_df, on='Strikes', how='outer')
 
-      call_premium = float(df.iloc[10][3])
-      put_premium = float(df.iloc[10][-1])
-      premium_style = '{background-color:#32CD32;color: black;}'
+      if df.shape[0] > 0 and df.shape[1] > 0: 
+        call_premium = float(df.iloc[10][3])
+        put_premium = float(df.iloc[10][-1])
+      else:
+        raise Exception
+
       if call_premium < put_premium:
         cheap_premium = 'CE'
         row = 4
       elif put_premium < call_premium:
         cheap_premium = 'PE'
         row = 5
-      style = f"""tr:nth-child({row}) td:nth-child(12){premium_style}"""
+
+      if index == 'NIFTY':
+        class_name = 'nifty'
+        color = 'red'
+      elif index == 'BANKNIFTY':
+        class_name = 'banknifty'
+        color = 'yellow'
+      else:
+        class_name = 'finnifty'
+        color = 'blue'
+
+      premium_style = '{background-color:#32CD32;color: black;}'
+      cheap_style = f""".{class_name} tr:nth-child({row}) td:nth-child(12){premium_style}"""
 
       max_value = max(call_premium, put_premium)
       min_value = min(call_premium, put_premium)
@@ -282,10 +297,10 @@ class FetchOptionData:
 
       df.fillna(' ', inplace=True)
       df = df[['Strikes','CE LTP', 'PE LTP', 'CE Premium', 'PE Premium', 'Discount']]
-
-      return index, self.convert_df_to_html(index, spot_value, futures_value, cheap_premium, percentage_diff, style, df)
+      
+      return index, self.convert_df_to_html(index, spot_value, futures_value, percentage_diff, cheap_style, class_name, df)
     
-    except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
+    except (SpotFetchException, FuturesFetchException, OptionChainFetchException, Exception) as e:
       return index, None
   
   def fetch_values(self, index, fut_expiry, time_code, result):
@@ -447,9 +462,9 @@ class FetchOptionData:
 
     return functions
 
-  def convert_df_to_html(self, index, spot_value, fut_value, cheap_premium, percentage_diff, style, *dfs):
+  def convert_df_to_html(self, index, spot_value, fut_value, percentage_diff, cheap_style, class_name, *dfs):
     value_diff = round(fut_value - spot_value,2)
-    html = f"""<style>{style}"""
+    html = f"""<style>{cheap_style}"""
     html += """
         tr{
           line-height:30px;
@@ -494,17 +509,17 @@ class FetchOptionData:
         table tr td:nth-child(21){text-align:center; font-size:16px;}
         table tr td:nth-child(22){text-align:center; font-size:16px;}
 
-        #discount{
-          text-align : center; 
-          background-color : lightgreen; 
-          color : black; 
-          font-weight : bold; 
-          font-size : 12px;
-        }
-
         .set{
           border-bottom: 5px double white;
           padding: 10px;
+        }
+
+        #discount {
+          text-align: center;
+          background-color: lightgreen;
+          color: black;
+          font-weight: bold;
+          font-size: 12px;
         }
 
         caption{
@@ -544,16 +559,15 @@ class FetchOptionData:
     for df in dfs:
         html += df.T.to_html()
     html += '</div>'
-    html = html.replace("""<table border="1" class="dataframe">""", """<table border="1" class="dataframe" id="dataframe">""")
+    html = html.replace("""<table border="1" class="dataframe">""", f"""<table border="1" class="dataframe {class_name}" id="dataframe">""")
     html = html.replace("""<td>Discount</td>""",'<td id="discount">Discount</td>')
     html = html.replace("""<th>10</th>""",'<th class="atm">ATM</th>')
     html = html.replace("""<th>0</th>\n      <th>1</th>\n      <th>2</th>\n      <th>3</th>\n      <th>4</th>\n      <th>5</th>\n      <th>6</th>\n      <th>7</th>\n      <th>8</th>\n      <th>9</th>\n      """,'<th colspan=10 class="calls">Calls</th>')
     html = html.replace("""<th>11</th>\n      <th>12</th>\n      <th>13</th>\n      <th>14</th>\n      <th>15</th>\n      <th>16</th>\n      <th>17</th>\n      <th>18</th>\n      <th>19</th>\n      <th>20</th>\n    """,'<th colspan=10 class="puts">Puts</th>')
-    color = '#32CD32' if cheap_premium == 'CE' else '#FF5C5C'
     html = html.replace(
-        """<table border="1" class="dataframe" id="dataframe">""", 
+        f"""<table border="1" class="dataframe {class_name}" id="dataframe">""", 
         f"""
-        <table border="1" class="dataframe" id="dataframe">
+        <table border="1" class="dataframe {class_name}" id="dataframe">
           <colgroup>
             <col style="width:6%">
           </colgroup>  
