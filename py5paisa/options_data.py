@@ -264,21 +264,14 @@ class FetchOptionData:
 
       call_premium = float(df.iloc[10][3])
       put_premium = float(df.iloc[10][-1])
+      premium_style = '{background-color:#32CD32;color: black;}'
       if call_premium < put_premium:
         cheap_premium = 'CE'
-        style = """
-          tr:nth-child(4) th{
-            background-color:#32CD32;
-            color: black;
-          }
-        """
+        row = 4
       elif put_premium < call_premium:
         cheap_premium = 'PE'
-        style = """
-          tr:nth-child(5) th{
-            background-color:#32CD32;
-            color: black;
-          }"""
+        row = 5
+      style = f"""tr:nth-child({row}) td:nth-child(12){premium_style}"""
 
       max_value = max(call_premium, put_premium)
       min_value = min(call_premium, put_premium)
@@ -290,7 +283,7 @@ class FetchOptionData:
       df.fillna(' ', inplace=True)
       df = df[['Strikes','CE LTP', 'PE LTP', 'CE Premium', 'PE Premium', 'Discount']]
 
-      return index, self.convert_df_to_html(index, spot_value, futures_value, cheap_premium, percentage_diff, df)
+      return index, self.convert_df_to_html(index, spot_value, futures_value, cheap_premium, percentage_diff, style, df)
     
     except (SpotFetchException, FuturesFetchException, OptionChainFetchException) as e:
       return index, None
@@ -454,85 +447,92 @@ class FetchOptionData:
 
     return functions
 
-  def convert_df_to_html(self, index, spot_value, fut_value, cheap_premium, percentage_diff, *dfs):
+  def convert_df_to_html(self, index, spot_value, fut_value, cheap_premium, percentage_diff, style, *dfs):
     value_diff = round(fut_value - spot_value,2)
-    html = """
-      <style>
+    html = f"""<style>{style}"""
+    html += """
+        tr{
+          height:20px;
+        }
         table tr td:nth-child(12){
-          font-size:20px;
           background-color: #C5C5C5;
           color: black;
           text-align:center;
+          font-weight:bold;
+          font-size:16px;
         }
 
         table tr:nth-child(1){
           font-weight:bold;
         }
 
-        table tr td:nth-child(0){text-align:center; font-size:20px;}
-        table tr td:nth-child(1){text-align:center; font-size:20px;}
-        table tr td:nth-child(2){text-align:center; font-size:20px;}
-        table tr td:nth-child(3){text-align:center; font-size:20px;}
-        table tr td:nth-child(4){text-align:center; font-size:20px;}
-        table tr td:nth-child(5){text-align:center; font-size:20px;}
-        table tr td:nth-child(6){text-align:center; font-size:20px;}
-        table tr td:nth-child(7){text-align:center; font-size:20px;}
-        table tr td:nth-child(8){text-align:center; font-size:20px;}
-        table tr td:nth-child(9){text-align:center; font-size:20px;}
-        table tr td:nth-child(10){text-align:center; font-size:20px;}
-        table tr td:nth-child(11){text-align:center; font-size:20px;}
-        table tr td:nth-child(13){text-align:center; font-size:20px;}
-        table tr td:nth-child(14){text-align:center; font-size:20px;}
-        table tr td:nth-child(15){text-align:center; font-size:20px;}
-        table tr td:nth-child(16){text-align:center; font-size:20px;}
-        table tr td:nth-child(17){text-align:center; font-size:20px;}
-        table tr td:nth-child(18){text-align:center; font-size:20px;}
-        table tr td:nth-child(19){text-align:center; font-size:20px;}
-        table tr td:nth-child(20){text-align:center; font-size:20px;}
-        table tr td:nth-child(21){text-align:center; font-size:20px;}
-        table tr td:nth-child(22){text-align:center; font-size:20px;}
+        table tr td:nth-child(0){text-align:center; font-size:16px;}
+        table tr td:nth-child(1){text-align:center; font-size:16px;}
+        table tr td:nth-child(2){text-align:center; font-size:16px;}
+        table tr td:nth-child(3){text-align:center; font-size:16px;}
+        table tr td:nth-child(4){text-align:center; font-size:16px;}
+        table tr td:nth-child(5){text-align:center; font-size:16px;}
+        table tr td:nth-child(6){text-align:center; font-size:16px;}
+        table tr td:nth-child(7){text-align:center; font-size:16px;}
+        table tr td:nth-child(8){text-align:center; font-size:16px;}
+        table tr td:nth-child(9){text-align:center; font-size:16px;}
+        table tr td:nth-child(10){text-align:center; font-size:16px;}
+        table tr td:nth-child(11){text-align:center; font-size:16px;}
+        table tr td:nth-child(13){text-align:center; font-size:16px;}
+        table tr td:nth-child(14){text-align:center; font-size:16px;}
+        table tr td:nth-child(15){text-align:center; font-size:16px;}
+        table tr td:nth-child(16){text-align:center; font-size:16px;}
+        table tr td:nth-child(17){text-align:center; font-size:16px;}
+        table tr td:nth-child(18){text-align:center; font-size:16px;}
+        table tr td:nth-child(19){text-align:center; font-size:16px;}
+        table tr td:nth-child(20){text-align:center; font-size:16px;}
+        table tr td:nth-child(21){text-align:center; font-size:16px;}
+        table tr td:nth-child(22){text-align:center; font-size:16px;}
 
         #discount{
           text-align : center; 
           background-color : lightgreen; 
           color : black; 
           font-weight : bold; 
-          font-size : 16px
+          font-size : 12px;
         }
+
         .set{
           border-bottom: 5px double white;
           padding: 10px;
         }
+
         caption{
-          font-size: 18px;
+          font-size: 14px;
           font-weight: bold;
           padding: 5px;
         }
+
         #dataframe{
           margin-top : 30px;
           width : 100%;
         }
+
         .atm{
           background-color: #C5C5C5; 
           color: black; 
           text-align: center;
         }
+
         .calls{
           background-color: #32CD32; 
           color: black; 
           text-align: center;
-          font-size:15px;
         }
         .puts{
           background-color: #FF5C5C; 
           color: black; 
           text-align: center;
-          font-size:15px;
         }
         content{
           margin-left:10px;
         }
-    </style>
+      </style>
     """
 
     html += '<div style="padding-left:30px; padding-right:30px">'
@@ -549,8 +549,11 @@ class FetchOptionData:
         """<table border="1" class="dataframe" id="dataframe">""", 
         f"""
         <table border="1" class="dataframe" id="dataframe">
-            <caption>{index} Spot : {spot_value} <span style='color:{color}'>({cheap_premium})</span></caption>
-            <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
+          <colgroup>
+            <col style="width:6%">
+          </colgroup>  
+          <caption>{index} Spot : {spot_value}</caption>
+          <caption>{index} Fut : {fut_value} <span style='color:{'#FF5C5C' if value_diff<0 else '#32CD32'}'>({value_diff})</span></caption>
         """)
 
     html = html.replace("&lt;br&gt;",  "<br>")
