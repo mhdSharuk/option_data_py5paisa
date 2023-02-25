@@ -59,11 +59,13 @@ class FetchOptionData:
                INCLUDE_FINNIFTY,
                BNF_NIFTY_FUT_EXPIRY,
                FINNIFTY_FUT_EXPIRY,
-               INCLUDE_ONE_SECOND_DELAY
+               INCLUDE_ONE_SECOND_DELAY,
+               DEBUG=False
                ):
     self.INCLUDE_NIFTY = INCLUDE_NIFTY
     self.INCLUDE_BANKNIFTY = INCLUDE_BANKNIFTY
     self.INCLUDE_FINNIFTY = INCLUDE_FINNIFTY
+    self.DEBUG = DEBUG
 
     self.INCLUDE_ONE_SECOND_DELAY = INCLUDE_ONE_SECOND_DELAY
 
@@ -349,6 +351,10 @@ class FetchOptionData:
       return 'NIFTY', option
 
     except Exception as e:
+      if self.DEBUG:
+        print('Error in Fetching NIFTY')
+        traceback.print_exc()
+        print('='*20)
       return 'NIFTY', None
 
   def fetchBankNifty(self):
@@ -370,6 +376,10 @@ class FetchOptionData:
       return 'BANKNIFTY', option
 
     except Exception as e:
+      if self.DEBUG:
+        print('Error in Fetching BANKNIFTY')
+        traceback.print_exc()
+        print('='*20)
       return 'BANKNIFTY', None
 
   def fetchFinNifty(self):
@@ -391,6 +401,10 @@ class FetchOptionData:
       return 'FINNIFTY', option
 
     except Exception as e:
+      if self.DEBUG:
+        print('Error in Fetching FINNIFTY')
+        traceback.print_exc()
+        print('='*20)
       return 'FINNIFTY', None
 
   def smap_parallel(self, f, result):
@@ -399,6 +413,10 @@ class FetchOptionData:
       result.update({idx : opt})
 
     except Exception as e:
+      if self.DEBUG:
+        print('Error in smap_parallel()')
+        traceback.print_exc()
+        print('='*20)
       raise OptionChainFetchException
 
   def smap(self, f):
