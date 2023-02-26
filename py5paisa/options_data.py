@@ -217,8 +217,9 @@ class FetchOptionData:
   def run(self, index, spot, futures, option_chain):
     try:
       if spot is not None:
-        if len(spot['lastrate']) == 0:
-          raise SpotFetchException
+        raise SpotFetchException
+#         if len(spot['lastrate']) == 0:
+#           raise SpotFetchException
       else:
         raise SpotFetchException
 
