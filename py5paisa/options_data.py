@@ -59,7 +59,7 @@ class FetchOptionData:
                INCLUDE_FINNIFTY,
                BNF_NIFTY_FUT_EXPIRY,
                FINNIFTY_FUT_EXPIRY,
-               INCLUDE_ONE_SECOND_DELAY,
+               INCLUDE_ONE_SECOND_DELAY
                DEBUG=False
                ):
     self.INCLUDE_NIFTY = INCLUDE_NIFTY
@@ -449,8 +449,7 @@ class FetchOptionData:
             j.kill()
 
           self.index_stack(result)
-          if self.INCLUDE_ONE_SECOND_DELAY:
-            time.sleep(1)
+          time.sleep(3)
           clear_output(wait=True)
 
         except KeyboardInterrupt:
@@ -462,8 +461,7 @@ class FetchOptionData:
         try:
           result = [self.smap(f) for f in functions]
           self.index_stack(result)
-          if self.INCLUDE_ONE_SECOND_DELAY:
-            time.sleep(1)
+          time.sleep(3)
           clear_output(wait=True)
 
         except KeyboardInterrupt:
