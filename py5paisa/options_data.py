@@ -91,7 +91,7 @@ class FetchOptionData:
       self.client = FivePaisaClient(email = self.email, passwd = self.pwd, dob = self.dob, cred = self.creds)
       self.client.login()
       
-      if self.client.login_response_message is None or self.client.is_logged_in:
+      if self.client.login_response_message is not None or not self.client.is_logged_in:
         raise InvalidLoginException
       else:
         display(HTML("<h2 style='color: #00D100'>Logged In...!!</h2>"))
@@ -217,9 +217,8 @@ class FetchOptionData:
   def run(self, index, spot, futures, option_chain):
     try:
       if spot is not None:
-        raise SpotFetchException
-#         if len(spot['lastrate']) == 0:
-#           raise SpotFetchException
+        if len(spot['lastrate']) == 0:
+          raise SpotFetchException
       else:
         raise SpotFetchException
 
