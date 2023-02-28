@@ -59,7 +59,7 @@ class FetchOptionData:
                INCLUDE_FINNIFTY,
                BNF_NIFTY_FUT_EXPIRY,
                FINNIFTY_FUT_EXPIRY,
-               INCLUDE_ONE_SECOND_DELAY
+               INCLUDE_ONE_SECOND_DELAY,
                DEBUG=False
                ):
     self.INCLUDE_NIFTY = INCLUDE_NIFTY
