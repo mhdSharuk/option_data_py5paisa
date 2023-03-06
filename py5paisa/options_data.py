@@ -449,7 +449,6 @@ class FetchOptionData:
             j.kill()
 
           self.index_stack(result)
-          clear_output(wait=True)
 
         except KeyboardInterrupt:
           for j in jobs:
@@ -460,7 +459,6 @@ class FetchOptionData:
         try:
           result = [self.smap(f) for f in functions]
           self.index_stack(result)
-          clear_output(wait=True)
 
         except KeyboardInterrupt:
           raise KeyboardInterrupt
@@ -609,3 +607,4 @@ class FetchOptionData:
             html += f'<h3><i>Fetching {idx} Option data.....</i></h3>'
     html += '</div>'
     display(HTML(html))
+    clear_output(wait=True)
