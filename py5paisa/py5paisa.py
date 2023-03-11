@@ -538,13 +538,15 @@ class FivePaisaClient:
                 return 'Invalid Time Frame. it should be within [1m,5m,10m,15m,30m,60m,1d].'
             else:
                 response = self.session.get(url, headers=self.jwt_headers).json()
-                candleList=response['data']['candles']
-                df=pd.DataFrame(candleList)
-                df.columns=['Datetime','Open','High','Low','Close','Volume']
-                return df
+                #candleList=response['data']['candles']
+                #df=pd.DataFrame(candleList)
+                #df.columns=['Datetime','Open','High','Low','Close','Volume']
+                #return df
+                return response
 
         except Exception as e:
-            log_response(e)
+            return f'Error in Fetching historical data : {e}'
+            #log_response(e)
 
     def get_buy(self):
         try:
